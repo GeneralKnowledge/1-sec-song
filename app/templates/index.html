@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1-Second Song Quiz</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>🎵 1-Second Song Quiz</h1>
+    <p class="subtitle">Listen to exactly one second and guess the song.</p>
+
+    <section class="stats">
+      <div><strong>Score:</strong> <span id="score">0</span></div>
+      <div><strong>Streak:</strong> <span id="streak">0</span></div>
+    </section>
+
+    <section class="controls">
+      <button id="play-btn" class="primary">▶ Play 1 second</button>
+      <p id="status" class="status"></p>
+    </section>
+
+    <section id="choices" class="choices"></section>
+
+    <section class="result">
+      <p id="result-text"></p>
+      <button id="next-btn" class="secondary" hidden>Next round</button>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
