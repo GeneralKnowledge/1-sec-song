@@ -8,8 +8,8 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import Settings, get_settings
 from app.game import GameService, ScoreState
+from app.itunes import ITunesClient
 from app.schemas import GuessRequest, GuessResponse, RoundResponse, Track
-from app.spotify import SpotifyClient
 from app.storage import TrackCache
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -25,7 +25,7 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 @app.on_event("startup")
 async def startup_event() -> None:
     app.state.settings = settings
-    app.state.spotify_client = SpotifyClient(settings)
+    app.state.itunes_client = ITunesClient(settings)
     app.state.track_cache = TrackCache(settings.sqlite_path)
     app.state.game_service = GameService(settings.app_secret_key)
 
@@ -33,15 +33,18 @@ async def startup_event() -> None:
 async def get_track_pool(request: Request) -> list[Track]:
     settings_obj: Settings = request.app.state.settings
     cache: TrackCache = request.app.state.track_cache
-    spotify_client: SpotifyClient = request.app.state.spotify_client
+    itunes_client: ITunesClient = request.app.state.itunes_client
 
     cached_tracks = cache.get_tracks_if_fresh(settings_obj.track_cache_ttl_seconds)
     if cached_tracks:
         return cached_tracks
 
-    tracks = await spotify_client.get_curated_tracks()
+    tracks = await itunes_client.get_curated_tracks()
     if not tracks:
-        raise HTTPException(status_code=503, detail="No playable tracks found. Check Spotify credentials/playlists.")
+        raise HTTPException(
+            status_code=503,
+            detail="No playable tracks found. Check ITUNES_SEARCH_TERMS / network access.",
+        )
     cache.save_tracks(tracks)
     return tracks
 

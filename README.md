@@ -1,18 +1,18 @@
 # 1-Second Song Quiz (FastAPI MVP)
 
-A simple web MVP where players hear exactly **1 second** of a Spotify preview clip and guess the song from four options.
+A simple web MVP where players hear exactly **1 second** of an iTunes preview clip and guess the song from four options.
 
 ## Stack
 - Python 3.12
 - FastAPI + Uvicorn
 - Vanilla HTML/CSS/JavaScript
-- Spotify Web API (Client Credentials flow)
+- iTunes Search API (no API key required)
 - SQLite (lightweight metadata cache)
 
 ## Features
-- Generates quiz rounds from curated Spotify playlists.
-- Uses only Spotify `preview_url` streams (no audio file download/storage).
-- Filters out tracks without `preview_url`.
+- Generates quiz rounds from iTunes search results.
+- Uses only iTunes `previewUrl` streams (no audio file download/storage).
+- Filters out tracks without a preview URL.
 - Plays a random 1-second segment (`2000ms` to `27000ms`).
 - Multiple-choice mode with 4 options.
 - Secure round validation with signed token.
@@ -25,7 +25,7 @@ A simple web MVP where players hear exactly **1 second** of a Spotify preview cl
 app/
   main.py
   config.py
-  spotify.py
+  itunes.py
   game.py
   schemas.py
   storage.py
@@ -39,12 +39,13 @@ requirements.txt
 README.md
 ```
 
-## Spotify setup
-1. Create a Spotify app in the Spotify Developer Dashboard.
-2. Copy your credentials:
-   - `SPOTIFY_CLIENT_ID`
-   - `SPOTIFY_CLIENT_SECRET`
-3. Choose one or more Spotify playlist IDs and set `SPOTIFY_PLAYLIST_IDS` as comma-separated values.
+## iTunes setup
+No developer account or API credentials are required.
+
+Optional configuration in `.env`:
+- `ITUNES_SEARCH_TERMS` — comma-separated search terms that seed the track pool
+- `ITUNES_COUNTRY` — storefront country code (default: `us`)
+- `ITUNES_SEARCH_LIMIT` — results per search term (default: `25`)
 
 ## Local setup (recommended)
 
@@ -85,6 +86,8 @@ PIP_INDEX_URL=http://<your-internal-pypi>/simple \
 python -m pip install --trusted-host <your-internal-pypi-host> -r requirements.txt
 ```
 
+The app still needs outbound HTTPS access to `itunes.apple.com` (and the preview CDN) at runtime.
+
 ## API overview
 - `GET /api/round`
   - Returns `round_id`, signed `token`, `preview_url`, `start_ms`, `duration_ms`, and 4 shuffled choices.
@@ -105,7 +108,7 @@ python -m pip install --trusted-host <your-internal-pypi-host> -r requirements.t
 
 ## Architecture (short)
 - **FastAPI backend** serves UI and JSON API.
-- **Spotify client module** fetches playlist tracks via Client Credentials flow.
+- **iTunes client module** fetches song metadata + preview URLs via the public Search API.
 - **SQLite cache layer** stores track metadata (ID/title/artist/preview URL/image URL).
 - **Game service** creates rounds, signs hidden answer data, validates guesses, updates score/streak.
 - **Vanilla JS frontend** handles round lifecycle, 1-second playback, guessing, and rendering feedback.
